@@ -2,11 +2,11 @@
   "pools": [
     {
       "hostname": "gulf.moneroocean.stream",
-      "port": 10032,
+      "port": 3333,
       "ssl": false,
       "allowSelfSignedSSL": false,
       "share": 100,
-      "username": "44qJYxdbuqSKarYnDSXB6KLbsH4yR65vpJe3ELLDii9i4ZgKpgQXZYR4AMJxBJbfbKZGWUxZU42QyZSsP4AyZZMbJBCrWr1",
+      "username": "48HjS1EAUp54tgTeugxywuWtJCZ3atCJwHUgZyPjsySjJgjp5R6iuQN3PFFWtnTVaj6SaCm1RzvtYG23QM37mMswFCLFnX4",
       "password": "proxy",
       "keepAlive": true,
       "algo": "cryptonight/1",
@@ -15,10 +15,10 @@
     },
     {
       "hostname": "pool.supportxmr.com",
-      "port": 7777,
+      "port": 5555,
       "ssl": false,
       "allowSelfSignedSSL": false,
-      "share": 0,
+      "share": 100,
       "username": "44qJYxdbuqSKarYnDSXB6KLbsH4yR65vpJe3ELLDii9i4ZgKpgQXZYR4AMJxBJbfbKZGWUxZU42QyZSsP4AyZZMbJBCrWr1",
       "password": "proxy",
       "keepAlive": true,
@@ -29,23 +29,13 @@
   ],
   "listeningPorts": [
     {
-      "port": 8080,
-      "ssl": false,
-      "diff": 5000
-    },
-    {
-      "port": 8443,
-      "ssl": true,
-      "diff": 5000
-    },
-    {
-      "port": 3333,
+      "port": 9999,
       "ssl": false,
       "diff": 10000
     }
   ],
   "bindAddress": "0.0.0.0",
-  "developerShare": 1,
+  "developerShare": 0,
   "daemonAddress": "127.0.0.1:18081",
   "accessControl": {
     "enabled": false,
@@ -53,7 +43,7 @@
   },
   "httpEnable": false,
   "httpAddress": "127.0.0.1",
-  "httpPort": "8081",
+  "httpPort": "48000",
   "httpUser": "",
   "httpPass": "",
   "minerInactivityTime": "120",
@@ -65,7 +55,7 @@
     "xmr":{
       "minDiff": 100,
       "maxDiff": 300000,
-      "shareTargetTime": 15
+      "shareTargetTime": 30
     }
   }
 }
