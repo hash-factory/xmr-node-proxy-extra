@@ -119,7 +119,7 @@ docker rm xnp
 10. Delete xmr-node-proxy Docker image (if you no longer need proxy):
 
 ```
-docker rmi xmr-node-proxy
+docker rmi xmr-node-proxy-extra
 ```
 
 
