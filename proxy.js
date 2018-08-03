@@ -10,7 +10,8 @@ const uuidV4 = require('uuid/v4');
 const support = require('./lib/support.js')();
 global.config = require('./config.json');
 
-const PROXY_VERSION = "0.1.6";
+const PROXY_VERSION = "0.2.0";
+const DEFAULT_ALGO = "cryptonight/1";
 
 /*
  General file design/where to find things.
@@ -207,11 +208,29 @@ function Pool(poolData){
     this.algo = poolData.algo;
     this.blob_type = poolData.blob_type;
 
+    const default_algo = this.algo ? this.algo : DEFAULT_ALGO;
+    this.algos = {};
+    this.algos[default_algo] = 1;
+    this.algos_perf = {};
+    this.algos_perf[default_algo] = 1;
+
     setInterval(function(pool) {
         if (pool.keepAlive && pool.socket && is_active_pool(pool.hostname)) pool.sendData('keepalived');
     }, 30000, this);
 
-    this.connect = function(){
+    this.close_socket = function(){
+        try {
+            if (this.socket !== null){
+                this.socket.end();
+                this.socket.destroy();
+            }
+        } catch (e) {
+            console.warn(global.threadName + "Had issues murdering the old socket. Om nom: " + e)
+        }
+        this.socket = null;
+    };
+
+    this.disable = function(){
         for (let worker in cluster.workers){
             if (cluster.workers.hasOwnProperty(worker)){
                 cluster.workers[worker].send({type: 'disablePool', pool: this.hostname});
@@ -219,35 +238,33 @@ function Pool(poolData){
         }
         this.active = false;
 
-	function connect2(ssl, port, hostname, allowSelfSignedSSL) {
-                try {
-                    if (activePools[hostname].socket !== null){
-                        activePools[hostname].socket.end();
-                        activePools[hostname].socket.destroy();
-                    }
-                } catch (e) {
-                    console.warn(global.threadName + "Had issues murdering the old socket. Om nom: " + e)
-                }
-                activePools[hostname].socket = null;
+        this.close_socket();
+    };
 
-	        if (ssl){
-	            activePools[hostname].socket = tls.connect(port, hostname, {rejectUnauthorized: allowSelfSignedSSL})
-		    .on('connect', ()=>{ poolSocket(hostname); })
-		    .on('error', (err)=>{
-	                setTimeout(connect2, 30*1000, ssl, port, hostname, allowSelfSignedSSL);
-	                console.warn(`${global.threadName}SSL pool socket connect error from ${hostname}: ${err}`);
+    this.connect = function(hostname){
+	function connect2(pool) {
+                pool.close_socket();
+
+	        if (pool.ssl){
+	            pool.socket = tls.connect(pool.port, pool.hostname, {rejectUnauthorized: pool.allowSelfSignedSSL})
+		    .on('connect', () => { poolSocket(pool.hostname); })
+		    .on('error', (err) => {
+	                setTimeout(connect2, 30*1000, pool);
+	                console.warn(`${global.threadName}SSL pool socket connect error from ${pool.hostname}: ${err}`);
 	            });
 	        } else {
-	            activePools[hostname].socket = net.connect(port, hostname)
-		    .on('connect', ()=>{ poolSocket(hostname); })
-		    .on('error', (err)=>{
-	                setTimeout(connect2, 30*1000, ssl, port, hostname, allowSelfSignedSSL);
-	                console.warn(`${global.threadName}Plain pool socket connect error from ${hostname}: ${err}`);
+	            pool.socket = net.connect(pool.port, pool.hostname)
+		    .on('connect', () => { poolSocket(pool.hostname); })
+		    .on('error', (err) => {
+	                setTimeout(connect2, 30*1000, port);
+	                console.warn(`${global.threadName}Plain pool socket connect error from ${pool.hostname}: ${err}`);
 	            });
 	        }
 	}
 
-	connect2(this.ssl, this.port, this.hostname, this.allowSelfSignedSSL);
+	let pool = activePools[hostname];
+        pool.disable();
+	connect2(pool);
     };
     this.sendData = function (method, params) {
         if (typeof params === 'undefined'){
@@ -261,7 +278,7 @@ function Pool(poolData){
             params.id = this.id;
         }
         rawSend.params = params;
-        if (!this.socket.writable){
+        if (this.socket === null || !this.socket.writable){
             return false;
         }
         this.socket.write(JSON.stringify(rawSend) + '\n');
@@ -272,7 +289,9 @@ function Pool(poolData){
         this.sendData('login', {
             login: this.username,
             pass: this.password,
-            agent: 'xmr-node-proxy/' + PROXY_VERSION
+            agent: 'xmr-node-proxy/' + PROXY_VERSION,
+            "algo": Object.keys(this.algos),
+            "algo-perf": this.algos_perf
         });
         this.active = true;
         for (let worker in cluster.workers){
@@ -280,6 +299,21 @@ function Pool(poolData){
                 cluster.workers[worker].send({type: 'enablePool', pool: this.hostname});
             }
         }
+    };
+    this.update_algo_perf = function (algos, algos_perf) {
+        // do not update not changed algo/algo-perf
+        const prev_algos = this.algos;
+        const prev_algos_perf = this.algos_perf;
+        if ( Object.keys(prev_algos).length == Object.keys(algos).length &&
+             Object.keys(prev_algos).every(function(u, i) { return prev_algos[u] === algos[u]; }) &&
+             Object.keys(prev_algos_perf).length == Object.keys(algos_perf).length &&
+             Object.keys(prev_algos_perf).every(function(u, i) { return prev_algos_perf[u] === algos_perf[u]; })
+           ) return;
+        console.log("Setting common algo: " + JSON.stringify(Object.keys(algos)) + " with algo-perf: " + JSON.stringify(algos_perf));
+        this.sendData('getjob', {
+            "algo": Object.keys(this.algos = algos),
+            "algo-perf": (this.algos_perf = algos_perf)
+        });
     };
     this.sendShare = function (worker, shareData) {
         //btID - Block template ID in the poolJobs circ buffer.
@@ -313,7 +347,7 @@ function connectPools(){
             return;
         }
         activePools[poolData.hostname] = new Pool(poolData);
-        activePools[poolData.hostname].connect();
+        activePools[poolData.hostname].connect(poolData.hostname);
     });
     let seen_coins = {};
     if (global.config.developerShare > 0){
@@ -327,7 +361,7 @@ function connectPools(){
                     return;
                 }
                 activePools[devPool.hostname] = new Pool(devPool);
-                activePools[devPool.hostname].connect();
+                activePools[devPool.hostname].connect(devPool.hostname);
                 seen_coins[activePools[pool].coin] = true;
             }
         }
@@ -618,6 +652,8 @@ function balanceWorkers(){
 
 function enumerateWorkerStats() {
     let stats, global_stats = {miners: 0, hashes: 0, hashRate: 0, diff: 0};
+    let pool_algos = {};
+    let pool_algos_perf = {};
     for (let poolID in activeWorkers){
         if (activeWorkers.hasOwnProperty(poolID)){
             stats = {
@@ -641,6 +677,23 @@ function enumerateWorkerStats() {
                             stats.hashes += workerData.hashes;
                             stats.hashRate += workerData.avgSpeed;
                             stats.diff += workerData.diff;
+                            // process smart miners and assume all other miners to only support pool algo
+                            let miner_algos = workerData.algos;
+                            if (!miner_algos) miner_algos[activePools[workerData.pool].algo ? activePools[workerData.pool].algo : DEFAULT_ALGO] = 1;
+    		            if (workerData.pool in pool_algos) { // compute union of miner_algos and pool_algos[workerData.pool]
+			        for (let algo in pool_algos[workerData.pool]) {
+			           if (!(algo in miner_algos)) delete pool_algos[workerData.pool][algo];
+			       }
+                            } else {
+                                pool_algos[workerData.pool] = miner_algos;
+                                pool_algos_perf[workerData.pool] = {};
+                            }
+                            if (workerData.algos_perf) { // only process smart miners and add algo_perf from all smart miners
+                                for (let algo in workerData.algos_perf) {
+                                    if (algo in pool_algos_perf[workerData.pool]) pool_algos_perf[workerData.pool][algo] += workerData.algos_perf[algo];
+                                    else pool_algos_perf[workerData.pool][algo] = workerData.algos_perf[algo];
+                                }
+                            }
                         } catch (err) {
                             delete activeWorkers[poolID][workerID];
                         }
@@ -667,6 +720,13 @@ function enumerateWorkerStats() {
         }
     }
     if (pool_hs != "") pool_hs = " (" + pool_hs + ")";
+
+    // do update of algo/algo-perf if it was changed
+    for (let pool in pool_algos) {
+        let pool_algos_perf2 = pool_algos_perf[pool];
+        if (Object.keys(pool_algos_perf2).length === 0) pool_algos_perf2[activePools[pool].algo ? activePools[pool].algo : DEFAULT_ALGO] = 1;
+        activePools[pool].update_algo_perf(pool_algos[pool], pool_algos_perf2);
+    }
 
     console.log(`The proxy currently has ${global_stats.miners} miners connected at ${global_stats.hashRate} h/s${pool_hs} with an average diff of ${Math.floor(global_stats.diff/global_stats.miners)}`);
 }
@@ -711,11 +771,13 @@ function poolSocket(hostname){
             dataBuffer = incomplete;
         }
     }).on('error', (err) => {
-        activePools[pool.hostname].connect();
         console.warn(`${global.threadName}Pool socket error from ${pool.hostname}: ${err}`);
+        activePools[pool.hostname].disable();
+        setTimeout(activePools[pool.hostname].connect, 30*1000, pool.hostname);
     }).on('close', () => {
-        activePools[pool.hostname].connect();
         console.warn(`${global.threadName}Pool socket closed from ${pool.hostname}`);
+        activePools[pool.hostname].disable();
+        setTimeout(activePools[pool.hostname].connect, 30*1000, pool.hostname);
     });
     socket.setKeepAlive(true);
     socket.setEncoding('utf8');
@@ -733,8 +795,9 @@ function handlePoolMessage(jsonData, hostname){
         }
     } else {
         if (jsonData.error !== null){
-            activePools[hostname].connect();
-            return console.error(`${global.threadName}Error response from pool ${pool.hostname}: ${JSON.stringify(jsonData.error)}`);
+            console.error(`${global.threadName}Error response from pool ${pool.hostname}: ${JSON.stringify(jsonData.error)}`);
+            activePools[hostname].disable();
+            return;
         }
         let sendLog = pool.sendLog[jsonData.id];
         switch(sendLog.method){
@@ -814,6 +877,13 @@ function Miner(id, params, ip, pushMessage, portData, minerSocket) {
     this.password = params.pass;  // For accessControl and workerStats.
     this.agent = params.agent;  // Documentation purposes only.
     this.ip = ip;  // Documentation purposes only.
+    if (params.algo && (params.algo instanceof Array)) { // To report union of defined algo set to the pool for all its miners
+        for (let i in params.algo) {
+            this.algos = {};
+            for (let i in params.algo) this.algos[params.algo[i]] = 1;
+        }
+    }
+    this.algos_perf = params["algo-perf"]; // To report sum of defined algo_perf to the pool for all its miners
     this.socket = minerSocket;
     this.messageSender = pushMessage;
     this.error = "";
@@ -900,6 +970,8 @@ function Miner(id, params, ip, pushMessage, portData, minerSocket) {
             identifier: this.identifier,
             ip: this.ip,
             agent: this.agent,
+            algos: this.algos,
+            algos_perf: this.algos_perf,
         };
     };
 
@@ -1170,13 +1242,13 @@ function activateHTTP() {
 				tableBody += `
 				<tr>
 					<td><TAB TO=t1>${name}</td>
-					<td><TAB TO=t2>${avgSpeed}</td>
+					<td><TAB TO=t2>${avgSpeed} H/s</td>
 					<td><TAB TO=t3>${miner.diff}</td>
 					<td><TAB TO=t4>${miner.shares}</td>
 					<td><TAB TO=t5>${miner.hashes}</td>
-					<td><TAB TO=t6>${moment.unix(miner.lastShare).fromNow(true)}</td>
-					<td><TAB TO=t7>${moment.unix(miner.lastContact).fromNow(true)}</td>
-					<td><TAB TO=t8>${moment(miner.connectTime).fromNow(true)}</td>
+					<td><TAB TO=t6>${moment.unix(miner.lastShare).fromNow(true)} ago</td>
+					<td><TAB TO=t7>${moment.unix(miner.lastContact).fromNow(true)} ago</td>
+					<td><TAB TO=t8>${moment(miner.connectTime).fromNow(true)} ago</td>
 					<td><TAB TO=t9>${miner.pool}</td>
 					<td><TAB TO=t10><div class="tooltip">${agent_parts[0]}<span class="tooltiptext">${miner.agent}</div></td>
 				</tr>
@@ -1225,9 +1297,9 @@ function activateHTTP() {
     			<th><TAB INDENT=80 ID=t3>Difficulty</th>
     			<th><TAB INDENT=100 ID=t4>Shares</th>
     			<th><TAB INDENT=120 ID=t5>Hashes</th>
-    			<th><TAB INDENT=140 ID=t6>Share Ago</th>
-    			<th><TAB INDENT=180 ID=t7>Ping Ago</th>
-    			<th><TAB INDENT=220 ID=t8>Connected Ago</th>
+    			<th><TAB INDENT=140 ID=t6>Share Recvd</th>
+    			<th><TAB INDENT=180 ID=t7>Ping Recvd</th>
+    			<th><TAB INDENT=220 ID=t8>Connected</th>
     			<th><TAB INDENT=260 ID=t9>Pool</th>
     			<th><TAB INDENT=320 ID=t10>Agent</th>
     		</thead>
