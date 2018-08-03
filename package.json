@@ -8,14 +8,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/MoneroOcean/xmr-node-proxy.git"
+    "url": "git+https://github.com/ALLRiPPED/xmr-node-proxy.git"
   },
   "author": "Multiple",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/MoneroOcean/xmr-node-proxy/issues"
+    "url": "https://github.com/ALLRiPPED/xmr-node-proxy/issues"
   },
-  "homepage": "https://github.com/MoneroOcean/xmr-node-proxy#readme",
+  "homepage": "https://github.com/ALLRiPPED/xmr-node-proxy#readme",
   "dependencies": {
     "async": "2.1.4",
     "bignum": "^0.12.5",
