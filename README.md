@@ -9,8 +9,6 @@ Supports all known cryptonight/heavy/light coins:
 * Sumokoin (SUMO), Haven (XHV), Loki (LOKI)
 * ...
 
-... except Fonero.
-
 ## Setup Instructions
 
 Based on a clean Ubuntu 16.04 LTS minimal install
@@ -19,7 +17,7 @@ Based on a clean Ubuntu 16.04 LTS minimal install
 
 ```bash
 cd xmr-node-proxy
-git remote set-url origin https://github.com/ALLRiPPED/xmr-node-proxy-extra.git && git pull -X theirs --no-edit && npm update
+git remote set-url origin https://github.com/MoneroOcean/xmr-node-proxy.git && git pull -X theirs --no-edit && npm update
 ```
 
 ## Deployment via Installer on Linux
@@ -40,7 +38,7 @@ echo "nodeproxy ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 3. Log in as the **NON-ROOT USER** you just created and run the [deploy script](https://raw.githubusercontent.com/MoneroOcean/xmr-node-proxy/master/install.sh).  This is very important!  This script will install the proxy to whatever user it's running under!
 
 ```bash
-curl -L https://raw.githubusercontent.com/ALLRiPPED/xmr-node-proxy-extra/master/install.sh | bash
+curl -L https://raw.githubusercontent.com/MoneroOcean/xmr-node-proxy/master/install.sh | bash
 ```
 
 3. Once it's complete, copy `config_example.json` to `config.json` and edit as desired.
@@ -48,7 +46,7 @@ curl -L https://raw.githubusercontent.com/ALLRiPPED/xmr-node-proxy-extra/master/
 8. Once you're happy with the settings, go ahead and start all the proxy daemon, commands follow.
 
 ```shell
-cd ~/xmr-node-proxy-extra/
+cd ~/xmr-node-proxy/
 pm2 start proxy.js --name=proxy --log-date-format="YYYY-MM-DD HH:mm:ss:SSS Z"
 pm2 save
 ```
@@ -67,7 +65,7 @@ pm2 monit
 ## Updating xmr-node-proxy
 
 ```bash
-cd xmr-node-proxy-extra
+cd xmr-node-proxy
 ./update.sh
 ```
 
@@ -75,13 +73,13 @@ cd xmr-node-proxy-extra
 
 1. Install and run [Docker for Windows](https://docs.docker.com/docker-for-windows/install/) with Linux containers mode.
 
-2. Get xmr-node-proxy sources by downloading and unpacking the latest [xmr-node-proxy](https://github.com/ALLRiPPED/xmr-node-proxy-extra/archive/master.zip)
+2. Get xmr-node-proxy sources by downloading and unpacking the latest [xmr-node-proxy](https://github.com/MoneroOcean/xmr-node-proxy/archive/master.zip)
 archive to xmr-node-proxy-master directory.
 
 3. Got to xmr-node-proxy-master directory in Windows "Command Prompt" and build xmr-node-proxy Docker image:
 
 ```
-docker build . -t xmr-node-proxy-extra
+docker build . -t xmr-node-proxy
 ```
 
 4. Copy config_example.json to config.json and edit config.json file as desired (do not forget to update default XMR wallet).
@@ -89,13 +87,13 @@ docker build . -t xmr-node-proxy-extra
 5. Create xnp Docker contained based on xmr-node-proxy image (make sure to update port numbers if you changed them in config.json):
 
 ```
-docker create -p 3333:3333 -p 8080:8080 -p 8443:8443 --name xnp xmr-node-proxy-extra
+docker create -p 3333:3333 -p 8080:8080 -p 8443:8443 --name xnp xmr-node-proxy
 ```
 
 6. Copy your modified config.json to xnp Docker container:
 
 ```
-docker cp config.json xnp:/xmr-node-proxy-extra
+docker cp config.json xnp:/xmr-node-proxy
 ```
 
 7. Run xnp Docker container (or attach to already running one):
@@ -119,7 +117,7 @@ docker rm xnp
 10. Delete xmr-node-proxy Docker image (if you no longer need proxy):
 
 ```
-docker rmi xmr-node-proxy-extra
+docker rmi xmr-node-proxy
 ```
 
 
@@ -185,6 +183,10 @@ If you'd like to make a one time donation, the addresses are as follows:
 * WOW - ```Wo3yjV8UkwvbJDCB1Jy7vvXv3aaQu3K8YMG6tbY3Jo2KApfyf5RByZiBXy95bzmoR3AvPgNq6rHzm98LoHTkzjiA2dY7sqQMJ```
 * XMV - ```4BDgQohRBqg2wFZ5ezYqCrNGjgECAttARdbh1fNkuAbd3HnNkSgas11QD9VFQMzbnvDD3Mfcky1LAFihkbEYph5oGAMLurw```
 * RYO - ```RYoLsi22qnoKYhnv1DwHBXcGe9QK6P9zmekwQnHdUAak7adFBK4i32wFTszivQ9wEPeugbXr2UD7tMd6ogf1dbHh76G5UszE7k1```
+* XTL - ```Se3Qr5s83AxjCtYrkkqg6QXJagCVi8dELbHb5Cnemw4rMk3xZzEX3kQfWrbTZPpdAJSP3enA6ri3DcvdkERkGKE518vyPQTyi```
+* XHV - ```hvxyEmtbqs5TEk9U2tCxyfGx2dyGD1g8EBspdr3GivhPchkvnMHtpCR2fGLc5oEY42UGHVBMBANPge5QJ7BDXSMu1Ga2KFspQR```
+* TUBE - ```bxcpZTr4C41NshmJM9Db7FBE5crarjaDXVUApRbsCxHHBf8Jkqjwjzz1zmWHhm9trWNhrY1m4RpcS7tmdG4ykdHG2kTgDcbKJ```
+* LOKI - ```L6XqN6JDedz5Ub8KxpMYRCUoQCuyEA8EegEmeQsdP5FCNuXJavcrxPvLhpqY6emphGTYVrmAUVECsE9drafvY2hXUTJz6rW```
 * BTC - ```3BzvMuLStA388kYZ9nudfm8L22937dSPS3```
 * BCH - ```qrhww48p5s6zw9twhc7cujgwp7vym2k4vutem6f92p```
 * ETH - ```0xCF8BABC074C487Ae17F9Ce0394eab492E6A35658```
