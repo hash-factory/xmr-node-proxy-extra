@@ -10,7 +10,7 @@ const uuidV4 = require('uuid/v4');
 const support = require('./lib/support.js')();
 global.config = require('./config.json');
 
-const PROXY_VERSION = "0.2.0";
+const PROXY_VERSION = "0.3.0";
 const DEFAULT_ALGO = "cryptonight/1";
 
 /*
@@ -256,7 +256,7 @@ function Pool(poolData){
 	            pool.socket = net.connect(pool.port, pool.hostname)
 		    .on('connect', () => { poolSocket(pool.hostname); })
 		    .on('error', (err) => {
-	                setTimeout(connect2, 30*1000, port);
+	                setTimeout(connect2, 30*1000, pool);
 	                console.warn(`${global.threadName}Plain pool socket connect error from ${pool.hostname}: ${err}`);
 	            });
 	        }
@@ -309,7 +309,7 @@ function Pool(poolData){
              Object.keys(prev_algos_perf).length == Object.keys(algos_perf).length &&
              Object.keys(prev_algos_perf).every(function(u, i) { return prev_algos_perf[u] === algos_perf[u]; })
            ) return;
-        console.log("Setting common algo: " + JSON.stringify(Object.keys(algos)) + " with algo-perf: " + JSON.stringify(algos_perf));
+        console.log("Setting common algo: " + JSON.stringify(Object.keys(algos)) + " with algo-perf: " + JSON.stringify(algos_perf) + " for pool " + this.hostname);
         this.sendData('getjob', {
             "algo": Object.keys(this.algos = algos),
             "algo-perf": (this.algos_perf = algos_perf)
@@ -817,7 +817,14 @@ function handlePoolMessage(jsonData, hostname){
 
 function handleNewBlockTemplate(blockTemplate, hostname){
     let pool = activePools[hostname];
-    console.log(`Received new block template on ${blockTemplate.height} height with ${blockTemplate.target_diff} target difficulty from ${pool.hostname}`);
+    let algo_variant = "";
+    if (blockTemplate.algo) algo_variant += "algo: " + blockTemplate.algo;
+    if (blockTemplate.variant) {
+        if (algo_variant != "") algo_variant += ", ";
+        algo_variant += "variant: " + blockTemplate.variant;
+    }
+    if (algo_variant != "") algo_variant = " (" + algo_variant + ")";
+    console.log(`Received new block template on ${blockTemplate.height} height${algo_variant} with ${blockTemplate.target_diff} target difficulty from ${pool.hostname}`);
     if(pool.activeBlocktemplate){
         if (pool.activeBlocktemplate.job_id === blockTemplate.job_id){
             debug.pool('No update with this job, it is an upstream dupe');
@@ -940,14 +947,15 @@ function Miner(id, params, ip, pushMessage, portData, minerSocket) {
     this.shares = 0;
     this.blocks = 0;
     this.hashes = 0;
-    this.logString = this.id + " IP: " + this.ip;
 
     this.validJobs = support.circularBuffer(5);
 
     this.cachedJob = null;
 
     let pass_split = params.pass.split(":");
-    this.identifier = pass_split[0];
+    this.identifier = global.config.addressWorkerID ? this.user : pass_split[0];
+
+    this.logString = (this.identifier && this.identifier != "x") ? this.identifier + " (" + this.ip + ")" : this.ip;
 
     this.minerStats = function(){
         if (this.socket.destroyed && !global.config.keepOfflineMiners){
@@ -972,6 +980,7 @@ function Miner(id, params, ip, pushMessage, portData, minerSocket) {
             agent: this.agent,
             algos: this.algos,
             algos_perf: this.algos_perf,
+            logString: this.logString,
         };
     };
 
@@ -1214,7 +1223,7 @@ function activateHTTP() {
 					if (typeof(miner) === 'undefined' || !miner) continue;
 					if (miner.active) {
   						miners[miner.id] = miner;
-						const name = (miner.identifier && miner.identifier != "x") ? miner.identifier + " (" + miner.ip + ")" : miner.ip;
+						const name = miner.logString;
                                                 miner_names[name] = 1;
 						++ totalWorkers;
 						totalHashrate += miner.avgSpeed;
@@ -1227,7 +1236,7 @@ function activateHTTP() {
 			}
     			for (let offline_miner_id in offline_miners) {
 				const miner = offline_miners[offline_miner_id];
-				const name = (miner.identifier && miner.identifier != "x") ? miner.identifier + " (" + miner.ip + ")" : miner.ip;
+				const name = miner.logString;
 				if (name in miner_names) continue;
 				miners[miner.id] = miner;
 				miner_names[name] = 1;
@@ -1236,13 +1245,13 @@ function activateHTTP() {
 			let tableBody = "";
     			for (let miner_id in miners) {
 				const miner = miners[miner_id];
-				const name = (miner.identifier && miner.identifier != "x") ? miner.identifier + " (" + miner.ip + ")" : miner.ip;
-				let avgSpeed = miner.active ? miner.avgSpeed : "offline";
+				const name = miner.logString;
+				let avgSpeed = miner.active ? miner.avgSpeed + " H/s" : "offline";
 				let agent_parts = miner.agent.split(" ");
 				tableBody += `
 				<tr>
 					<td><TAB TO=t1>${name}</td>
-					<td><TAB TO=t2>${avgSpeed} H/s</td>
+					<td><TAB TO=t2>${avgSpeed}</td>
 					<td><TAB TO=t3>${miner.diff}</td>
 					<td><TAB TO=t4>${miner.shares}</td>
 					<td><TAB TO=t5>${miner.hashes}</td>
@@ -1259,7 +1268,14 @@ function activateHTTP() {
 				let targetDiff = activePools[poolName].activeBlocktemplate ? activePools[poolName].activeBlocktemplate.targetDiff : "?";
                 		let walletId = activePools[poolName].username
 				if (poolName.includes("moneroocean")) {
-					tablePool += `<a class="${global.config.theme}" href="https://moneroocean.stream/#/dashboard?addr=${walletId}" title="MoneroOcean Dashboard" target="_blank"><h2> ${poolName}: ${poolHashrate[poolName]} H/s or ${poolPercentage}% (${targetDiff} diff)</h2></a>`;
+					let algo_variant = "";
+                                        if (activePools[poolName].activeBlocktemplate.algo) algo_variant += "algo: " + activePools[poolName].activeBlocktemplate.algo;
+                                        if (activePools[poolName].activeBlocktemplate.variant) {
+                                                if (algo_variant != "") algo_variant += ", ";
+                                                algo_variant += "variant: " + activePools[poolName].activeBlocktemplate.variant;
+                                         }
+                                        if (algo_variant != "") algo_variant = " (" + algo_variant + ")";
+					tablePool += `<a class="${global.config.theme}" href="https://moneroocean.stream/#/dashboard?addr=${walletId}" title="MoneroOcean Dashboard" target="_blank"><h2> ${poolName}: ${poolHashrate[poolName]} H/s or ${poolPercentage}% (${targetDiff} diff) ${algo_variant}</h2></a>`;
 				} else {
 					tablePool += `<h2> ${poolName}: ${poolHashrate[poolName]} H/s or ${poolPercentage}% (${targetDiff} diff)</h2></a>`;
 				}
