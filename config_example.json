@@ -6,6 +6,7 @@
       "ssl": false,
       "allowSelfSignedSSL": true,
       "share": 100,
+      "coin": "etnx",
       "username": "etnkHfFuanNeTe3q9dux4d9cRiLkUR4hDffvhfTp6nbhEJ5R8TY4vdyZjT4BtWxnvSJ5nfD64eCAQfKMJHSym2dj8PQqeiKmBM",
       "password": "proxy1",
       "keepAlive": true,
@@ -14,12 +15,13 @@
       "default": true
     },
     {
-      "hostname": "msr.optimusblue.com",
+      "hostname": "pool.electronero.org",
       "port": 3333,
       "ssl": false,
       "allowSelfSignedSSL": true,
       "share": 0,
-      "username": "5jLRQghHbWChujQvJV2j4U3ome9JDMPVwBCxymzqZ9TxYBD13Vj23su6cKixZnbFrCQZ1XPnx6MX8AUpzSMyqJQY6S12MMy",
+      "coin": "etnxp",
+      "username": "etnkHfFuanNeTe3q9dux4d9cRiLkUR4hDffvhfTp6nbhEJ5R8TY4vdyZjT4BtWxnvSJ5nfD64eCAQfKMJHSym2dj8PQqeiKmBM",
       "password": "proxy2",
       "keepAlive": true,
       "algo": "cryptonight/msr",
