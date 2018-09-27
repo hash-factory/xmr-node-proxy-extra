@@ -1,16 +1,16 @@
 {
   "pools": [
     {
-      "hostname": "uspool.electronero.org",
+      "hostname": "pool.supportxmr.com",
       "port": 1122,
       "ssl": false,
       "allowSelfSignedSSL": false,
-      "share": 50,
-      "username": "85ceM1MELV1HgNRAWuRC2P1ABCvHUmEkieB49bLPAEG4LJAyRTRfEWJFX85gDrKnUkSRtxQxvdUUY8ZYT1hfMH6XU8przaV",
+      "share": 100,
+      "username": "48HjS1EAUp54tgTeugxywuWtJCZ3atCJwHUgZyPjsySjJgjp5R6iuQN3PFFWtnTVaj6SaCm1RzvtYG23QM37mMswFCLFnX4",
       "password": "proxy1",
       "keepAlive": true,
-      "algo": "cn/msr",
-      "blob_type": "cryptonote2",
+      "algo": "cryptonight/1",
+      "blob_type": "cryptonote",
       "default": true
     },
     {
@@ -18,11 +18,11 @@
       "port": 1122,
       "ssl": false,
       "allowSelfSignedSSL": false,
-      "share": 50,
+      "share": 0,
       "username": "85ceM1MELV1HgNRAWuRC2P1ABCvHUmEkieB49bLPAEG4LJAyRTRfEWJFX85gDrKnUkSRtxQxvdUUY8ZYT1hfMH6XU8przaV",
       "password": "proxy2",
       "keepAlive": true,
-      "algo": "cn/msr",
+      "algo": "cryptonight/msr",
       "blob_type": "cryptonote2",
       "default": false
     }
