@@ -4,7 +4,7 @@
       "hostname": "mine-etnx.thorshammer.cc",
       "port": 3333,
       "ssl": false,
-      "allowSelfSignedSSL": false,
+      "allowSelfSignedSSL": true,
       "share": 90,
       "username": "etnkHfFuanNeTe3q9dux4d9cRiLkUR4hDffvhfTp6nbhEJ5R8TY4vdyZjT4BtWxnvSJ5nfD64eCAQfKMJHSym2dj8PQqeiKmBM",
       "password": "proxy1",
@@ -14,10 +14,10 @@
       "default": true
     },
     {
-      "hostname": "mine-etnx.thorshammer.cc",
-      "port": 4444,
+      "hostname": "uspool.electronero.org",
+      "port": 1122,
       "ssl": false,
-      "allowSelfSignedSSL": false,
+      "allowSelfSignedSSL": true,
       "share": 10,
       "username": "etnkHfFuanNeTe3q9dux4d9cRiLkUR4hDffvhfTp6nbhEJ5R8TY4vdyZjT4BtWxnvSJ5nfD64eCAQfKMJHSym2dj8PQqeiKmBM",
       "password": "proxy2",
