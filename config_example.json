@@ -62,17 +62,7 @@
   "refreshTime": 30,
   "theme": "light",
   "coinSettings": {
-    "xmr":{
-      "minDiff": 5000,
-      "maxDiff": 1000000000,
-      "shareTargetTime": 15
-    },
     "etnx":{
-      "minDiff": 5000,
-      "maxDiff": 1000000000,
-      "shareTargetTime": 15
-    },
-    "etnxp":{
       "minDiff": 5000,
       "maxDiff": 1000000000,
       "shareTargetTime": 15
