@@ -1,12 +1,12 @@
 {
   "pools": [
     {
-      "hostname": "msr.optimusblue.com",
-      "port": 3333,
+      "hostname": "uspool.electronero.org",
+      "port": 6666,
       "ssl": false,
       "allowSelfSignedSSL": true,
-      "share": 90,
-      "username": "5jLRQghHbWChujQvJV2j4U3ome9JDMPVwBCxymzqZ9TxYBD13Vj23su6cKixZnbFrCQZ1XPnx6MX8AUpzSMyqJQY6S12MMy",
+      "share": 100,
+      "username": "etnkHfFuanNeTe3q9dux4d9cRiLkUR4hDffvhfTp6nbhEJ5R8TY4vdyZjT4BtWxnvSJ5nfD64eCAQfKMJHSym2dj8PQqeiKmBM",
       "password": "proxy1",
       "keepAlive": true,
       "algo": "cryptonight/msr",
