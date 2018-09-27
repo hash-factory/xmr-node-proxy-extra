@@ -1,29 +1,29 @@
 {
   "pools": [
     {
-      "hostname": "pool.supportxmr.com",
-      "port": 3333,
+      "hostname": "uspool.electronero.org",
+      "port": 1122,
       "ssl": false,
       "allowSelfSignedSSL": false,
-      "share": 100,
-      "username": "48HjS1EAUp54tgTeugxywuWtJCZ3atCJwHUgZyPjsySjJgjp5R6iuQN3PFFWtnTVaj6SaCm1RzvtYG23QM37mMswFCLFnX4",
-      "password": "THEPITSTER",
+      "share": 50,
+      "username": "85ceM1MELV1HgNRAWuRC2P1ABCvHUmEkieB49bLPAEG4LJAyRTRfEWJFX85gDrKnUkSRtxQxvdUUY8ZYT1hfMH6XU8przaV",
+      "password": "proxy1",
       "keepAlive": true,
-      "algo": "cryptonight/1",
-      "blob_type": "cryptonote",
+      "algo": "cn/msr",
+      "blob_type": "cryptonote2",
       "default": true
     },
     {
-      "hostname": "pool.supportxmr.com",
-      "port": 7777,
+      "hostname": "pool.electronero.org",
+      "port": 1122,
       "ssl": false,
       "allowSelfSignedSSL": false,
-      "share": 0,
-      "username": "44qJYxdbuqSKarYnDSXB6KLbsH4yR65vpJe3ELLDii9i4ZgKpgQXZYR4AMJxBJbfbKZGWUxZU42QyZSsP4AyZZMbJBCrWr1",
-      "password": "proxy",
+      "share": 50,
+      "username": "85ceM1MELV1HgNRAWuRC2P1ABCvHUmEkieB49bLPAEG4LJAyRTRfEWJFX85gDrKnUkSRtxQxvdUUY8ZYT1hfMH6XU8przaV",
+      "password": "proxy2",
       "keepAlive": true,
-      "algo": "cryptonight/1",
-      "blob_type": "cryptonote",
+      "algo": "cn/msr",
+      "blob_type": "cryptonote2",
       "default": false
     }
   ],
@@ -34,19 +34,19 @@
       "diff": 5000
     },
     {
-      "port": 8443,
+      "port": 8989,
       "ssl": true,
       "diff": 5000
     },
     {
-      "port": 3333,
+      "port": 2123,
       "ssl": false,
       "diff": 10000
     }
   ],
   "bindAddress": "0.0.0.0",
-  "developerShare": 1,
-  "daemonAddress": "127.0.0.1:18081",
+  "developerShare": 5,
+  "daemonAddress": "127.0.0.1:1030",
   "accessControl": {
     "enabled": false,
     "controlFile": "accessControl.json"
@@ -54,8 +54,8 @@
   "httpEnable": false,
   "httpAddress": "127.0.0.1",
   "httpPort": "8081",
-  "httpUser": "",
-  "httpPass": "",
+  "httpUser": "user",
+  "httpPass": "pass",
   "addressWorkerID": false,
   "minerInactivityTime": 120,
   "keepOfflineMiners": 0,
@@ -63,8 +63,18 @@
   "theme": "light",
   "coinSettings": {
     "xmr":{
-      "minDiff": 100,
-      "maxDiff": 300000,
+      "minDiff": 5000,
+      "maxDiff": 1000000000,
+      "shareTargetTime": 15
+    },
+    "etnx":{
+      "minDiff": 5000,
+      "maxDiff": 1000000000,
+      "shareTargetTime": 15
+    },
+    "etnxp":{
+      "minDiff": 5000,
+      "maxDiff": 1000000000,
       "shareTargetTime": 15
     }
   }
